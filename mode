@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+import socket
+import os, os.path
+import time
+import sys
+
+SOCKET_FILE = "/home/brewpi/BEERSOCKET"
+
+def send_msg (msg):
+    client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client.connect(SOCKET_FILE)
+    client.send(msg)
+    client.close()
+
+
+def main():
+
+    if (len(sys.argv) != 2):
+        sys.exit("usage: brewpi_mode [herms or fridge]")
+
+    mode = sys.argv[1]
+
+    if not os.path.exists(SOCKET_FILE):
+        sys.exit("Could not connect to socketFile. File " + SOCKET_FILE + " does not exist")
+
+    if mode == 'herms':
+        # Uninstall everything first
+        send_msg('applyDevice={"i":"0","c":"1","b":"1","f":"0","h":"2","p":"0","a":"28AD047406000060"}')  # Fridge temp
+        send_msg('applyDevice={"i":"1","c":"1","b":"1","f":"0","h":"3","p":"0","x":"0","a":"3A331421000000B7","n":"0"}')  # Heat
+        send_msg('applyDevice={"i":"2","c":"1","b":"1","f":"0","h":"3","p":"0","x":"0","a":"3A331421000000B7","n":"1"}')  # Cool
+        send_msg('applyDevice={"i":"3","c":"1","b":"1","f":"0","h":"2","p":"0","a":"2859365D07000081"}')                  # Fermenter temp
+
+        send_msg('applyDevice={"i":"0","c":"1","b":"1","f":"6","h":"2","p":"0","a":"28BF6B5E070000EB"}')  # Boil Kettle
+        send_msg('applyDevice={"i":"1","c":"1","b":"1","f":"5","h":"2","p":"0","a":"28FF0F7671150333"}')  # HLT
+        send_msg('applyDevice={"i":"2","c":"1","b":"1","f":"9","h":"2","p":"0","a":"28D80B740600007C"}')  # Mash
+        send_msg('applyDevice={"i":"3","c":"1","b":"1","f":"2","h":"1","p":"11","x":"0"}')                # HLT heater
+
+        send_msg('setParameters={"beer2fridge_kp":0.65}')
+        send_msg('setParameters={"beer2fridge_ti":250}')
+        send_msg('setParameters={"beer2fridge_td":120}')
+        send_msg('setParameters={"beer2fridge_pidMax":5}')
+        send_msg('setParameters={"beer2fridge_infilt":"1"}')
+        send_msg('setParameters={"beer2fridge_dfilt":"1"}')
+        send_msg('setParameters={"heater1_kp":75}')
+        send_msg('setParameters={"heater1_ti":250}')
+        send_msg('setParameters={"heater1_td":30}')
+        send_msg('setParameters={"heater1_infilt":"1"}')
+        send_msg('setParameters={"heater1_dfilt":"1"}')
+        send_msg('setParameters={"deadTime":0}')
+
+    elif mode == 'fridge':
+        # Uninstall everything first
+        send_msg('applyDevice={"i":"0","c":"1","b":"1","f":"0","h":"2","p":"0","a":"28BF6B5E070000EB"}')  # Boil Kettle temp
+        send_msg('applyDevice={"i":"1","c":"1","b":"1","f":"0","h":"2","p":"0","a":"28FF0F7671150333"}')  # HLT temp
+        send_msg('applyDevice={"i":"2","c":"1","b":"1","f":"0","h":"2","p":"0","a":"28D80B740600007C"}')  # Mash temp
+        send_msg('applyDevice={"i":"3","c":"1","b":"1","f":"0","h":"1","p":"11","x":"0"}')                # HLT heater
+
+        send_msg('applyDevice={"i":"0","c":"1","b":"1","f":"5","h":"2","p":"0","a":"28AD047406000060"}')  # Fridge temp
+        send_msg('applyDevice={"i":"1","c":"1","b":"1","f":"2","h":"3","p":"0","x":"0","a":"3A331421000000B7","n":"0"}')  # Heat
+        send_msg('applyDevice={"i":"2","c":"1","b":"1","f":"3","h":"3","p":"0","x":"0","a":"3A331421000000B7","n":"1"}')  # Cool
+        send_msg('applyDevice={"i":"3","c":"1","b":"1","f":"9","h":"2","p":"0","a":"2859365D07000081"}')                  # Fermenter temp
+
+        send_msg('setParameters={"beer2fridge_kp":5}')
+        send_msg('setParameters={"beer2fridge_ti":1000}')
+        send_msg('setParameters={"beer2fridge_td":0}')
+        send_msg('setParameters={"beer2fridge_pidMax":10}')
+        send_msg('setParameters={"beer2fridge_infilt":"1"}')
+        send_msg('setParameters={"beer2fridge_dfilt":"4"}')
+        send_msg('setParameters={"cooler_kp":10}')
+        send_msg('setParameters={"cooler_ti":1000}')
+        send_msg('setParameters={"cooler_td":200}')
+        send_msg('setParameters={"coolerPwmPeriod":1200}')
+        send_msg('setParameters={"minCoolIdleTime":180}')
+        send_msg('setParameters={"minCoolTime":120}')
+        send_msg('setParameters={"cooler_infilt":"1"}')
+        send_msg('setParameters={"cooler_dfilt":"4"}')
+        send_msg('setParameters={"heater1_kp":10}')
+        send_msg('setParameters={"heater1_ti":600}')
+        send_msg('setParameters={"heater1_td":60}')
+        send_msg('setParameters={"heater1_infilt":"1"}')
+        send_msg('setParameters={"heater1_dfilt":"4"}')
+        send_msg('setParameters={"deadTime":1800}')
+
+    else:
+        print "invalid mode (should be herms or fridge)"
+
+    print "Mode changed to: " + mode
+
+if __name__== "__main__":
+  main()
+
+
